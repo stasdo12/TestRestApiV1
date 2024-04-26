@@ -5,6 +5,7 @@ import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,9 @@ import java.util.List;
 @RequestMapping("/api/users")
 public class UserController {
 
+    @Value("${user.min-age}")
+    private int minAge;
+
     @Autowired
     private UserService userService;
 
@@ -30,7 +34,7 @@ public class UserController {
     @PostMapping("/createUser")
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         LocalDate currentDate = LocalDate.now();
-        LocalDate minBirthDate = currentDate.minusYears(18);
+        LocalDate minBirthDate = currentDate.minusYears(minAge);
         if (user.getBirthDate().isAfter(minBirthDate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
@@ -49,6 +53,13 @@ public class UserController {
     public ResponseEntity<User> updateUser(@PathVariable Long userId, @Valid @RequestBody User userDetails) {
         User updateUser = userService.updateUser(userId, userDetails);
         return ResponseEntity.ok(updateUser);
+    }
+
+    @Transactional
+    @PutMapping("/updateUserFull/{userId}")
+    public ResponseEntity<User> updateUserFull(@PathVariable Long userId, @Valid @RequestBody User userDetails) {
+        User updatedUser = userService.updateUser(userId, userDetails);
+        return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/searchUser")

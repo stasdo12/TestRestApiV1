@@ -3,6 +3,7 @@ package com.RestApi.task.TestRestApi.services;
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @Service
 public class UserServiceImpl implements UserService {
+
 
     @Autowired
     private UserRepository userRepository;
@@ -53,6 +55,23 @@ public class UserServiceImpl implements UserService {
         if (userDetails.getLastName() != null){
             user.setLastName(userDetails.getLastName());
         }
+
+        return userRepository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public User updateUserFull(Long userId, User userDetails) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "User not found with id: " + userId));
+
+        user.setEmail(userDetails.getEmail());
+        user.setBirthDate(userDetails.getBirthDate());
+        user.setAddress(userDetails.getAddress());
+        user.setPhoneNumber(userDetails.getPhoneNumber());
+        user.setFirstName(userDetails.getFirstName());
+        user.setLastName(userDetails.getLastName());
 
         return userRepository.save(user);
     }

@@ -10,6 +10,7 @@ public interface UserService {
     User createUser(User user);
     User updateUser(Long userId, User userDetails);
     void deleteUser(Long userId);
+    User updateUserFull(Long userId, User userDetails);
     List<User> getAllUsers();
     List<User> getUsersByBirthDateRange(LocalDate startDate, LocalDate endDate);
 

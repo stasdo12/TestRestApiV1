@@ -25,53 +25,45 @@ import java.time.LocalDate;
 @Builder
 @Getter
 @Setter
-@Table(name= "user")
+@Table(name = "users")
 @Valid
 public class User implements Serializable {
 
-
     @Id
-    @Column(name="id")
+    @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     @Valid
-    @Column(name="email")
+    @Column(name = "email")
     private String email;
 
     @NotBlank(message = "First name is required")
     @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     @Valid
-    @Column(name="firstName")
+    @Column(name = "firstname")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
     @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
     @Valid
-    @Column(name="lastName")
+    @Column(name = "lastname")
     private String lastName;
 
     @Past(message = "Birth date must be in the past")
     @Valid
-    @Column(name="birthDate")
+    @Column(name = "birthdate")
     private LocalDate birthDate;
 
     @Valid
-    @Column(name="address")
+    @Column(name = "address")
     private String address;
 
     @Valid
-    @Column(name="phoneNumber")
+    @Column(name = "phonenumber")
     private String phoneNumber;
-
-
-
-
-
-
-
 
 
 }

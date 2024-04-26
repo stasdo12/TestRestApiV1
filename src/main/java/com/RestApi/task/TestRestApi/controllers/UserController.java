@@ -3,6 +3,7 @@ package com.RestApi.task.TestRestApi.controllers;
 
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.services.UserService;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,7 +44,8 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/updateUser/{userId}")
+    @Transactional
+    @PatchMapping("/updateUser/{userId}")
     public ResponseEntity<User> updateUser(@PathVariable Long userId, @Valid @RequestBody User userDetails) {
         User updateUser = userService.updateUser(userId, userDetails);
         return ResponseEntity.ok(updateUser);

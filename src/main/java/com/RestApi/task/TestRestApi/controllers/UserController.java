@@ -2,16 +2,19 @@ package com.RestApi.task.TestRestApi.controllers;
 
 
 import com.RestApi.task.TestRestApi.entity.User;
+import com.RestApi.task.TestRestApi.exceptions.ErrorResponse;
 import com.RestApi.task.TestRestApi.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.Valid;
+import java.awt.print.Pageable;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -27,16 +30,17 @@ public class UserController {
 
     @GetMapping("/getAllUsers")
     public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
+        List<User> users =  userService.getAllUsers();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @PostMapping("/createUser")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+    public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
         LocalDate currentDate = LocalDate.now();
         LocalDate minBirthDate = currentDate.minusYears(minAge);
         if (user.getBirthDate().isAfter(minBirthDate)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            ErrorResponse errorResponse = new ErrorResponse("Age must be 18+");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
         User createdUser = userService.createUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
@@ -45,7 +49,7 @@ public class UserController {
     @DeleteMapping("/deleteUser/{userId}")
     public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
     @Transactional

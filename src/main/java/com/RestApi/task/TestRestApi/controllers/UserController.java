@@ -5,6 +5,7 @@ import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.exceptions.ErrorResponse;
 import com.RestApi.task.TestRestApi.services.UserService;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
+@RequiredArgsConstructor
 public class UserController {
 
     @Value("${user.min-age}")
@@ -36,14 +38,13 @@ public class UserController {
 
     @PostMapping("/createUser")
     public ResponseEntity<Object> createUser(@Valid @RequestBody User user) {
-        LocalDate currentDate = LocalDate.now();
-        LocalDate minBirthDate = currentDate.minusYears(minAge);
-        if (user.getBirthDate().isAfter(minBirthDate)) {
-            ErrorResponse errorResponse = new ErrorResponse("Age must be 18+");
+        try {
+            User createdUser = userService.createUser(user);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        } catch (IllegalArgumentException e) {
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
         }
-        User createdUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @DeleteMapping("/deleteUser/{userId}")

@@ -24,6 +24,12 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @Override
     public User createUser(User user) {
+        LocalDate currentDate = LocalDate.now();
+        LocalDate minBirthDate = currentDate.minusYears(18);
+
+        if (user.getBirthDate().isAfter(minBirthDate)) {
+            throw new IllegalArgumentException("Age must be 18+");
+        }
         return userRepository.save(user);
     }
 

@@ -45,6 +45,7 @@ public class UserServiceImplTest {
         userToCreate.setEmail("example@example.com");
         userToCreate.setFirstName("John");
         userToCreate.setLastName("Doe");
+        userToCreate.setBirthDate(LocalDate.of(1990, 1, 1));
 
         User savedUser = new User();
         savedUser.setId(1L);

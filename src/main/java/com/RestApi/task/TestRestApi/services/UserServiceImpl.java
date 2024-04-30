@@ -3,7 +3,6 @@ package com.RestApi.task.TestRestApi.services;
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
+
 
 
 @Service
@@ -32,9 +32,6 @@ public class UserServiceImpl implements UserService {
         }
         return userRepository.save(user);
     }
-
-
-
 
     @Transactional
     @Override
@@ -103,4 +100,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByBirthDateBetween(startDate, endDate);
 
     }
+
+
 }

@@ -3,6 +3,9 @@ package com.RestApi.task.TestRestApi.services;
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,9 @@ import java.util.List;
 @Service
 public class UserServiceImpl implements UserService {
 
+    @Value("${user.min-age}")
+    private int minAge;
+
 
     @Autowired
     private UserRepository userRepository;
@@ -25,7 +31,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(User user) {
         LocalDate currentDate = LocalDate.now();
-        LocalDate minBirthDate = currentDate.minusYears(18);
+        LocalDate minBirthDate = currentDate.minusYears(minAge);
 
         if (user.getBirthDate().isAfter(minBirthDate)) {
             throw new IllegalArgumentException("Age must be 18+");
@@ -91,13 +97,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<User> getAllUsers(PageRequest pageRequest) {
+        Page<User> page = userRepository.findAll(pageRequest);
+        return page.getContent();
     }
 
     @Override
-    public List<User> getUsersByBirthDateRange(LocalDate startDate, LocalDate endDate) {
-        return userRepository.findByBirthDateBetween(startDate, endDate);
+    public List<User> getUsersByBirthDateRange(PageRequest pageRequest,  LocalDate startDate, LocalDate endDate) {
+        return userRepository.findByBirthDateBetween(pageRequest, startDate, endDate);
 
     }
 

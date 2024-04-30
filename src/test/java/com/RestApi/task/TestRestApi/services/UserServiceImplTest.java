@@ -14,6 +14,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,9 +34,9 @@ public class UserServiceImplTest {
 
         LocalDate startDate = LocalDate.of(1990, 1, 1);
         LocalDate endDate = LocalDate.of(1990, 2, 28);
-        when(userRepository.findByBirthDateBetween(startDate, endDate)).thenReturn(users);
+        when(userRepository.findByBirthDateBetween(PageRequest.of(0, 10), startDate, endDate)).thenReturn(users);
 
-        List<User> result = userService.getUsersByBirthDateRange(startDate, endDate);
+        List<User> result = userService.getUsersByBirthDateRange(PageRequest.of(0, 10),  startDate, endDate);
 
         assertEquals(2, result.size());
     }
@@ -62,11 +65,15 @@ public class UserServiceImplTest {
 
 
     @Test
-    public void testGetAllUsers(){
-        List<User> users  = createUsers();
-        when(userRepository.findAll()).thenReturn(users);
+    public void testGetAllUsers() {
+        int page = 0;
+        int size = 10;
+        List<User> users = createUsers();
+        Page<User> pageUsers = new PageImpl<>(users);
 
-        List<User> allUsers = userService.getAllUsers();
+        when(userRepository.findAll(PageRequest.of(page, size))).thenReturn(pageUsers);
+
+        List<User> allUsers = userService.getAllUsers(PageRequest.of(page, size));
         assertEquals(2, allUsers.size());
 
         assertEquals(1L, allUsers.get(0).getId());

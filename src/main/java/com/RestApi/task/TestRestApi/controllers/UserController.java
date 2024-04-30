@@ -8,19 +8,18 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.Valid;
-import java.awt.print.Pageable;
 import java.time.LocalDate;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/V1/users/")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -31,8 +30,10 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/getAllUsers")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users =  userService.getAllUsers();
+    public ResponseEntity<List<User>> getAllUsers(
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size) {
+        List<User> users = userService.getAllUsers(PageRequest.of(page, size));
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
@@ -69,12 +70,14 @@ public class UserController {
 
     @GetMapping("/searchUser")
     public ResponseEntity<List<User>> searchUsersByBirthDateRange
-            (@RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            ( @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+              @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+              @RequestParam(required = false, defaultValue = "0") int page,
+              @RequestParam(required = false, defaultValue = "10") int size) {
         if (startDate.isAfter(endDate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        List<User> users = userService.getUsersByBirthDateRange(startDate, endDate);
+        List<User> users = userService.getUsersByBirthDateRange(PageRequest.of(page, size), startDate, endDate);
         return ResponseEntity.ok(users);
 
     }

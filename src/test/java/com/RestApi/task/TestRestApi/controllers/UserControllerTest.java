@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -57,11 +58,11 @@ class UserControllerTest {
         users.add(new User(1, "Test@gmail.com", "TestFirstName", "TestLastName",
                 LocalDate.now(), "TestAddress", "000000000"));
 
-        when(userService.getAllUsers()).thenReturn(users);
-        mockMvc.perform(get("/api/users/getAllUsers"))
+        when(userService.getAllUsers(PageRequest.of(0, 10))).thenReturn(users);
+        mockMvc.perform(get("/api/V1/users/getAllUsers"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
-        verify(userService, times(1)).getAllUsers();
+        verify(userService, times(1)).getAllUsers(PageRequest.of(0, 10));
     }
 
 
@@ -72,7 +73,7 @@ class UserControllerTest {
                 dateOfBirth, "TestAddress", "0639539901");
         String userJson = objectMapper.writeValueAsString(user);
 
-        mockMvc.perform(post("/api/users/createUser")
+        mockMvc.perform(post("/api/V1/users/createUser")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(userJson))
                 .andExpect(status().isCreated());
@@ -105,7 +106,7 @@ class UserControllerTest {
     void deleteUserByIdTest() throws Exception {
         Long userId = 123L;
 
-        mockMvc.perform(delete("/api/users/deleteUser/{userId}", userId)
+        mockMvc.perform(delete("/api/V1/users/deleteUser/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
@@ -125,7 +126,7 @@ class UserControllerTest {
 
         when(userService.updateUser(userId, userDetails)).thenReturn(updatedUser);
 
-        mockMvc.perform(patch("/api/users/updateUser/{userId}", userId)
+        mockMvc.perform(patch("/api/V1/users/updateUser/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"updatedEmail@gmail.com\", \"firstName\": \"UpdatedFirstName\", \"lastName\": \"UpdatedLastName\"}"))
                 .andExpect(status().isOk());
@@ -147,7 +148,7 @@ class UserControllerTest {
 
         when(userService.updateUser(userId, userDetails)).thenReturn(updatedUser);
 
-        mockMvc.perform(put("/api/users/updateUserFull/{userId}", userId)
+        mockMvc.perform(put("/api/V1/users/updateUserFull/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"email\": \"updatedEmail@gmail.com\"," +
                                 " \"firstName\": \"UpdatedFirstName\", \"lastName\":" +
@@ -164,16 +165,16 @@ class UserControllerTest {
         List<User> users = new ArrayList<>();
         users.add(new User(1L, "email1@gmail.com", "FirstName1", "LastName1", LocalDate.of(1993, 5, 10), "Address1", "1234567890"));
         users.add(new User(2L, "email2@gmail.com", "FirstName2", "LastName2", LocalDate.of(1994, 8, 20), "Address2", "0987654321"));
-        when(userService.getUsersByBirthDateRange(startDate, endDate)).thenReturn(users);
+        when(userService.getUsersByBirthDateRange(PageRequest.of(0, 10), startDate, endDate)).thenReturn(users);
 
-        mockMvc.perform(get("/api/users/searchUser")
+        mockMvc.perform(get("/api/V1/users/searchUser")
                         .param("from", startDate.toString())
                         .param("to", endDate.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
 
-        verify(userService, times(1)).getUsersByBirthDateRange(startDate, endDate);
+        verify(userService, times(1)).getUsersByBirthDateRange(PageRequest.of(0, 10), startDate, endDate);
     }
 
     @Test
@@ -181,7 +182,7 @@ class UserControllerTest {
         LocalDate startDate = LocalDate.of(1995, 1, 1);
         LocalDate endDate = LocalDate.of(1990, 12, 31);
 
-        mockMvc.perform(get("/api/users/searchUser")
+        mockMvc.perform(get("/api/V1/users/searchUser")
                         .param("from", startDate.toString())
                         .param("to", endDate.toString())
                         .contentType(MediaType.APPLICATION_JSON))

@@ -1,8 +1,7 @@
 package com.RestApi.task.TestRestApi.services;
 
 import com.RestApi.task.TestRestApi.entity.User;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 
 import java.time.LocalDate;
@@ -13,7 +12,7 @@ public interface UserService {
     User updateUser(Long userId, User userDetails);
     void deleteUser(Long userId);
     User updateUserFull(Long userId, User userDetails);
-    List<User> getAllUsers();
-    List<User> getUsersByBirthDateRange(LocalDate startDate, LocalDate endDate);
+    List<User> getAllUsers(PageRequest pageRequest);
+    List<User> getUsersByBirthDateRange(PageRequest pageRequest, LocalDate startDate, LocalDate endDate);
 
 }

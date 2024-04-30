@@ -2,6 +2,7 @@ package com.RestApi.task.TestRestApi.services;
 
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -17,15 +18,13 @@ import java.util.List;
 
 
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     @Value("${user.min-age}")
     private int minAge;
 
-
-    @Autowired
-    private UserRepository userRepository;
-
+    private final UserRepository userRepository;
 
     @Transactional
     @Override

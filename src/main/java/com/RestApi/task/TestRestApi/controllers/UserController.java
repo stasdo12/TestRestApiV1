@@ -1,18 +1,27 @@
 package com.RestApi.task.TestRestApi.controllers;
 
 
+import com.RestApi.task.TestRestApi.dto.UserDTO;
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.exceptions.ErrorResponse;
 import com.RestApi.task.TestRestApi.services.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -22,9 +31,6 @@ import java.util.List;
 @RequestMapping("/api/V1/users/")
 @RequiredArgsConstructor
 public class UserController {
-
-    @Value("${user.min-age}")
-    private int minAge;
 
     @Autowired
     private UserService userService;
@@ -80,5 +86,16 @@ public class UserController {
         List<User> users = userService.getUsersByBirthDateRange(PageRequest.of(page, size), startDate, endDate);
         return ResponseEntity.ok(users);
 
+    }
+
+    private UserDTO convertToDTO(User user){
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail(user.getEmail());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setLastName(user.getLastName());
+        userDTO.setBirthDate(user.getBirthDate());
+        userDTO.setAddress(user.getAddress());
+        userDTO.setPhoneNumber(user.getPhoneNumber());
+        return userDTO;
     }
 }

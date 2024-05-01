@@ -91,26 +91,31 @@ class UserControllerTest {
         verify(userService, times(1)).createUser(any(User.class));
     }
 
-//    @Test
-//    void createUserInvalidBirthDateTest() throws Exception {
-//        // Given
-//        LocalDate dateOfBirth = LocalDate.of(2021, 2, 12);
-//        User user = new User(111, "Test@gmail.com", "TestFirstName", "TestLastName",
-//                dateOfBirth, "TestAddress", "0639539901");
-//        String userJson = objectMapper.writeValueAsString(user);
-//        ErrorResponse expectedErrorResponse = new ErrorResponse("Age must be 18+");
-//
-//        // When
-//        mockMvc.perform(post("/api/users/createUser")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(userJson))
-//                .andExpect(status().isBadRequest())
-//                .andExpect(jsonPath("$.message").value("Age must be 18+"));
-//
-//        // Then
-//        // Verify that createUser method is not called
-//        verify(userService, never()).createUser(user);
-//    }
+    @Test
+    void createUserInvalidBirthDateTest() throws Exception {
+        // Given
+        LocalDate dateOfBirth = LocalDate.of(2099, 2, 12);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setEmail("Test@gmail.com");
+        userDTO.setFirstName("TestFirstName");
+        userDTO.setLastName("TestLastName");
+        userDTO.setBirthDate(dateOfBirth);
+        userDTO.setAddress("TestAddress");
+        userDTO.setPhoneNumber("0639539901");
+
+        // Преобразуем UserDTO в JSON
+        String userJson = objectMapper.writeValueAsString(userDTO);
+
+        // When & Then
+        mockMvc.perform(post("/api/V1/users/")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(userJson))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("User must be 18 years old or older."));
+
+        // Проверяем, что метод createUser не вызывается
+        verify(userService, never()).createUser(any(User.class));
+    }
 
     @Test
     void deleteUserByIdTest() throws Exception {

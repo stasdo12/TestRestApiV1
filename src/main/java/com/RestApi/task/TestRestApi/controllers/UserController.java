@@ -99,11 +99,11 @@ public class UserController {
         return ResponseEntity.ok(userDTOs);
     }
 
-    public UserDTO convertToDTO(User user) {
+    private UserDTO convertToDTO(User user) {
         return modelMapper.map(user, UserDTO.class);
     }
 
-    public User convertToUser(UserDTO userDTO){
+    private User convertToUser(UserDTO userDTO){
         ModelMapper modelMapper = new ModelMapper();
         return modelMapper.map(userDTO, User.class);
     }

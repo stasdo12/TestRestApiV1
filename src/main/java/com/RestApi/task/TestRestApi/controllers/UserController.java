@@ -31,11 +31,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
 
-
-
     private UserService userService;
     private final ModelMapper modelMapper;
-
 
     @Autowired
     public UserController(UserService userService, ModelMapper modelMapper) {
@@ -53,7 +50,6 @@ public class UserController {
                 .collect(Collectors.toList());
         return new ResponseEntity<>(userDTOs, HttpStatus.OK);
     }
-
 
     @PostMapping("/")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
@@ -103,11 +99,12 @@ public class UserController {
         return ResponseEntity.ok(userDTOs);
     }
 
-    private UserDTO convertToDTO(User user) {
+    public UserDTO convertToDTO(User user) {
         return modelMapper.map(user, UserDTO.class);
     }
 
-    private User convertToUser(UserDTO userDTO){
+    public User convertToUser(UserDTO userDTO){
+        ModelMapper modelMapper = new ModelMapper();
         return modelMapper.map(userDTO, User.class);
     }
 }

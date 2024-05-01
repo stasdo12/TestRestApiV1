@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import com.RestApi.task.TestRestApi.entity.User;
+import com.RestApi.task.TestRestApi.exceptions.UserNotFoundException;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -101,7 +102,7 @@ public class UserServiceImplTest {
     public void testDeleteUser_UserNotFound() {
         Long userId = 1L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
-        assertThrows(ResponseStatusException.class, () -> userService.deleteUser(userId));
+        assertThrows(UserNotFoundException.class, () -> userService.deleteUser(userId));
     }
 
 

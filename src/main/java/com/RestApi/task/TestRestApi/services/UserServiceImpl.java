@@ -1,20 +1,17 @@
 package com.RestApi.task.TestRestApi.services;
 
 import com.RestApi.task.TestRestApi.entity.User;
+import com.RestApi.task.TestRestApi.exceptions.AgeRequirementException;
+import com.RestApi.task.TestRestApi.exceptions.UserNotFoundException;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.time.LocalDate;
 import java.util.List;
-
 
 
 @Service
@@ -33,7 +30,7 @@ public class UserServiceImpl implements UserService {
         LocalDate minBirthDate = currentDate.minusYears(minAge);
 
         if (user.getBirthDate().isAfter(minBirthDate)) {
-            throw new IllegalArgumentException("Age must be 18+");
+            throw new AgeRequirementException("User must be 18 years old or older.");
         }
         return userRepository.save(user);
     }
@@ -42,8 +39,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUser(Long userId, User userDetails) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "User not found with id: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         if (userDetails.getEmail() != null) {
             user.setEmail(userDetails.getEmail());
@@ -63,7 +59,6 @@ public class UserServiceImpl implements UserService {
         if (userDetails.getLastName() != null){
             user.setLastName(userDetails.getLastName());
         }
-
         return userRepository.save(user);
     }
 
@@ -71,8 +66,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User updateUserFull(Long userId, User userDetails) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "User not found with id: " + userId));
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
         user.setEmail(userDetails.getEmail());
         user.setBirthDate(userDetails.getBirthDate());
@@ -88,11 +82,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteUser(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow (() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                "User not found with id: " + userId));
+                .orElseThrow (() -> new UserNotFoundException(userId));
 
         userRepository.delete(user);
-
     }
 
     @Override
@@ -104,7 +96,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getUsersByBirthDateRange(PageRequest pageRequest,  LocalDate startDate, LocalDate endDate) {
         return userRepository.findByBirthDateBetween(pageRequest, startDate, endDate);
-
     }
 
 

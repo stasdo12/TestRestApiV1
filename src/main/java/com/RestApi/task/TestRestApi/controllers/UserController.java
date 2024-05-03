@@ -3,11 +3,12 @@ package com.RestApi.task.TestRestApi.controllers;
 import com.RestApi.task.TestRestApi.dto.UserDTO;
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.services.UserService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserController {
 
+
     private UserService userService;
     private final ModelMapper modelMapper;
 
@@ -51,6 +53,18 @@ public class UserController {
         return new ResponseEntity<>(userDTOs, HttpStatus.OK);
     }
 
+    @GetMapping("/1")
+    public ResponseEntity<List<UserDTO>> getAllUsers1(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "3") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userService.getAllUsers1(pageable);
+        List<UserDTO> userDTOs = userPage.getContent().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+        return new ResponseEntity<>(userDTOs, HttpStatus.OK);
+    }
+
     @PostMapping("/")
     public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO) {
         User user = convertToUser(userDTO);
@@ -65,7 +79,6 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Transactional
     @PatchMapping("/{userId}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long userId, @Valid @RequestBody UserDTO userDTO) {
         User user = convertToUser(userDTO);
@@ -74,7 +87,6 @@ public class UserController {
         return ResponseEntity.ok(updatedUserDTO);
     }
 
-    @Transactional
     @PutMapping("/{userId}")
     public ResponseEntity<UserDTO> updateUserFull(@PathVariable Long userId, @Valid @RequestBody UserDTO userDTO) {
         User user = convertToUser(userDTO);
@@ -83,17 +95,34 @@ public class UserController {
         return ResponseEntity.ok(updatedUserDTO);
     }
 
-    @GetMapping("/searchUser")
-    public ResponseEntity<List<UserDTO>> searchUsersByBirthDateRange(
-            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//    @GetMapping("/searchUser")
+//    public ResponseEntity<List<UserDTO>> searchUsersByBirthDateRange(
+//            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+//            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+//            @RequestParam(required = false, defaultValue = "0") int page,
+//            @RequestParam(required = false, defaultValue = "10") int size) {
+//        if (startDate.isAfter(endDate)) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+//        }
+//        List<User> users = userService.getUsersByBirthDateRange(PageRequest.of(page, size), startDate, endDate);
+//        List<UserDTO> userDTOs = users.stream()
+//                .map(this::convertToDTO)
+//                .collect(Collectors.toList());
+//        return ResponseEntity.ok(userDTOs);
+//    }
+
+    @GetMapping("/searchUser1")
+    public ResponseEntity<List<UserDTO>> searchUsersByBirthDateRange1(
+            @RequestParam("from" ) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "10") int size) {
+            @RequestParam(required = false, defaultValue = "3") int size) {
         if (startDate.isAfter(endDate)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        List<User> users = userService.getUsersByBirthDateRange(PageRequest.of(page, size), startDate, endDate);
-        List<UserDTO> userDTOs = users.stream()
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> userPage = userService.getUsersByBirthDateRange1(pageable, startDate, endDate);
+        List<UserDTO> userDTOs = userPage.getContent().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(userDTOs);

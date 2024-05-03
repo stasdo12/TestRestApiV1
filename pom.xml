@@ -17,6 +17,8 @@
 		<hibernate-validator.version>6.2.0.Final</hibernate-validator.version>
 		<javax.el-api.version>3.0.0</javax.el-api.version>
 		<glassfish-javax.el.version>3.0.1-b08</glassfish-javax.el.version>
+		<model-mapper.version>3.1.1</model-mapper.version>
+		<liquibase.version>4.27.0</liquibase.version>
 	</properties>
 
 	<groupId>com.RestApi.task</groupId>
@@ -92,8 +94,15 @@
 		<dependency>
 			<groupId>org.modelmapper</groupId>
 			<artifactId>modelmapper</artifactId>
-			<version>3.1.1</version>
+			<version>${model-mapper.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.liquibase</groupId>
+			<artifactId>liquibase-core</artifactId>
+			<version>${liquibase.version}</version>
+		</dependency>
+
+
 	</dependencies>
 
 	<build>

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
@@ -93,9 +94,19 @@ public class UserServiceImpl implements UserService {
         return page.getContent();
     }
 
+//    @Override
+//    public List<User> getUsersByBirthDateRange(PageRequest pageRequest,  LocalDate startDate, LocalDate endDate) {
+//        return userRepository.findByBirthDateBetween(pageRequest, startDate, endDate);
+//    }
+
     @Override
-    public List<User> getUsersByBirthDateRange(PageRequest pageRequest,  LocalDate startDate, LocalDate endDate) {
-        return userRepository.findByBirthDateBetween(pageRequest, startDate, endDate);
+    public Page<User> getAllUsers1(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    @Override
+    public Page<User> getUsersByBirthDateRange1(Pageable pageable, LocalDate startDate, LocalDate endDate) {
+        return userRepository.findByBirthDateBetween(pageable, startDate, endDate);
     }
 
 

@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 
 @ExtendWith(MockitoExtension.class)
@@ -29,17 +30,37 @@ public class UserServiceImplTest {
     @InjectMocks
     private UserServiceImpl userService;
 
+//    @Test
+//    public void testFindByBirthDateBetween() {
+//        List<User> users = createUsers();
+//
+//        LocalDate startDate = LocalDate.of(1990, 1, 1);
+//        LocalDate endDate = LocalDate.of(1990, 2, 28);
+//        when(userRepository.findByBirthDateBetween(PageRequest.of(0, 10), startDate, endDate)).thenReturn(users);
+//
+//        List<User> result = userService.getUsersByBirthDateRange(PageRequest.of(0, 10),  startDate, endDate);
+//
+//        assertEquals(2, result.size());
+//    }
+
     @Test
-    public void testFindByBirthDateBetween() {
+    public void testGetUsersByBirthDateRange1() {
+        // Создаем тестовых пользователей
         List<User> users = createUsers();
 
+        // Устанавливаем даты начала и конца для поиска пользователей
         LocalDate startDate = LocalDate.of(1990, 1, 1);
         LocalDate endDate = LocalDate.of(1990, 2, 28);
-        when(userRepository.findByBirthDateBetween(PageRequest.of(0, 10), startDate, endDate)).thenReturn(users);
 
-        List<User> result = userService.getUsersByBirthDateRange(PageRequest.of(0, 10),  startDate, endDate);
+        // Устанавливаем ожидаемый результат при вызове метода findByBirthDateBetween
+        when(userRepository.findByBirthDateBetween(any(Pageable.class), eq(startDate), eq(endDate)))
+                .thenReturn(new PageImpl<>(users));
 
-        assertEquals(2, result.size());
+        // Вызываем тестируемый метод
+        Page<User> result = userService.getUsersByBirthDateRange1(PageRequest.of(0, 10), startDate, endDate);
+
+        // Проверяем корректность результатов
+        assertEquals(2, result.getContent().size());
     }
 
     @Test

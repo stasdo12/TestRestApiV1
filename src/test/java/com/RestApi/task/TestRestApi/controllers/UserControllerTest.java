@@ -1,239 +1,183 @@
 package com.RestApi.task.TestRestApi.controllers;
 
-import com.RestApi.task.TestRestApi.dto.UserDTO;
-import com.RestApi.task.TestRestApi.entity.User;
-import com.RestApi.task.TestRestApi.services.UserServiceImpl;
+import com.RestApi.task.TestRestApi.dto.UpdatePhoneNumberRq;
+import com.RestApi.task.TestRestApi.dto.UserDto;
+import com.RestApi.task.TestRestApi.services.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@AutoConfigureMockMvc
-@SpringBootTest
-@ExtendWith(MockitoExtension.class)
-class UserControllerTest {
+@WebMvcTest(controllers = UserController.class)
+public class UserControllerTest {
 
-
-    @Mock
-    private UserServiceImpl userService;
-
-    @Mock
-    private ModelMapper modelMapper;
-
-    @InjectMocks
-    private UserController userController;
-
-
+    @Autowired
     private MockMvc mockMvc;
 
-    private ObjectMapper objectMapper;
+    @MockBean
+    private UserService userService;
 
-
-
-
-    @BeforeEach
-    void setUp() {
-        userController = new UserController(userService, modelMapper);
-        mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
-        objectMapper = new ObjectMapper().registerModule(new JavaTimeModule())
-                .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-    }
-
-
-    @Test
-    void getAllUsersTest() throws Exception {
-        List<User> users = new ArrayList<>();
-        users.add(new User(1, "Test@gmail.com", "TestFirstName", "TestLastName",
-                LocalDate.now(), "TestAddress", "000000000"));
-
-        when(userService.getAllUsers(PageRequest.of(0, 10))).thenReturn(users);
-        mockMvc.perform(get("/api/V1/users/"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
-        verify(userService, times(1)).getAllUsers(PageRequest.of(0, 10));
-    }
-
+    @Autowired
+    private UserController userController;
 
     @Test
     void createUserTest() throws Exception {
-        UserDTO userDTO = new UserDTO();
-        userDTO.setEmail("Test@gmail.com");
-        userDTO.setFirstName("TestFirstName");
-        userDTO.setLastName("TestLastName");
-        userDTO.setBirthDate(LocalDate.of(1994, 4, 26));
-        userDTO.setAddress("TestAddress");
-        userDTO.setPhoneNumber("0639539901");
-        String userJson = objectMapper.writeValueAsString(userDTO);
-        mockMvc.perform(post("/api/V1/users/")
+        UserDto userDto = new UserDto();
+        userDto.setEmail("test@example.com");
+        userDto.setFirstName("John");
+        userDto.setLastName("Doe");
+
+        when(userService.createUser(any(UserDto.class))).thenReturn(userDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/V1/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(userJson))
-                .andExpect(status().isCreated());
-        verify(userService, times(1)).createUser(any(User.class));
+                        .content(asJsonString(userDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
+
+        verify(userService, times(1)).createUser(userDto);
     }
 
     @Test
-    void createUserInvalidBirthDateTest() throws Exception {
-        // Given
-        LocalDate dateOfBirth = LocalDate.of(2099, 2, 12);
-        UserDTO userDTO = new UserDTO();
-        userDTO.setEmail("Test@gmail.com");
-        userDTO.setFirstName("TestFirstName");
-        userDTO.setLastName("TestLastName");
-        userDTO.setBirthDate(dateOfBirth);
-        userDTO.setAddress("TestAddress");
-        userDTO.setPhoneNumber("0639539901");
+    void getAllUsersTest() {
+        List<UserDto> users = new ArrayList<>();
+        users.add(new UserDto("test1@gmail.com", "John", "Doe",
+                LocalDate.of(1990, 1, 1), "Address1", "1234567890"));
+        users.add(new UserDto("test2@gmail.com", "Jane", "Smith",
+                LocalDate.of(1995, 5, 5), "Address2", "0987654321"));
 
-        // Преобразуем UserDTO в JSON
-        String userJson = objectMapper.writeValueAsString(userDTO);
+        Page<UserDto> userPage = new PageImpl<>(users);
 
-        // When & Then
-        mockMvc.perform(post("/api/V1/users/")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(userJson))
-                .andExpect(jsonPath("$.message").value("User must be 18 years old or older."));
+        when(userService.getAllUsers(any(Pageable.class))).thenReturn(userPage);
 
-        // Проверяем, что метод createUser не вызывается
-        verify(userService, never()).createUser(any(User.class));
+        ResponseEntity<Page<UserDto>> responseEntity = userController.getAllUsers(Pageable.unpaged());
+
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+
+        assertEquals(users.size(), responseEntity.getBody().getNumberOfElements());
+        assertEquals(users.get(0), responseEntity.getBody().getContent().get(0));
+        assertEquals(users.get(1), responseEntity.getBody().getContent().get(1));
+
+        verify(userService, times(1)).getAllUsers(any(Pageable.class));
     }
 
     @Test
-    void deleteUserByIdTest() throws Exception {
-        Long userId = 123L;
+    void deleteUserTest() {
+        Long userId = 1L;
+        ResponseEntity<Void> responseEntity = userController.deleteUser(userId);
 
-        mockMvc.perform(delete("/api/V1/users/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
 
         verify(userService, times(1)).deleteUser(userId);
     }
 
     @Test
-    void updateUserTest() throws Exception {
-        Long userId = 123L;
-        UserDTO userDetails = new UserDTO();
-        userDetails.setEmail("updatedEmail@gmail.com");
-        userDetails.setFirstName("UpdatedFirstName");
-        userDetails.setLastName("UpdatedLastName");
+    void updateContactsTest() throws Exception {
+        Long userId = 1L;
+        UpdatePhoneNumberRq updatePhoneRq = new UpdatePhoneNumberRq();
+        updatePhoneRq.setPhoneNumber("1234567890");
 
-        UserDTO updatedUserDTO = new UserDTO();
-        updatedUserDTO.setEmail("updatedEmail@gmail.com");
-        updatedUserDTO.setFirstName("UpdatedFirstName");
-        updatedUserDTO.setLastName("UpdatedLastName");
+        UserDto updatedUser = new UserDto();
+        updatedUser.setEmail("test@example.com");
+        updatedUser.setFirstName("John");
+        updatedUser.setLastName("Doe");
+        updatedUser.setPhoneNumber("1234567890");
 
-        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(convertToUser(updatedUserDTO));
+        when(userService.updatePhone(userId, updatePhoneRq)).thenReturn(updatedUser);
 
-        mockMvc.perform(patch("/api/V1/users/{userId}", userId)
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/V1/users/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\": \"updatedEmail@gmail.com\", \"firstName\": \"UpdatedFirstName\", \"lastName\": \"UpdatedLastName\"}"))
-                .andExpect(status().isOk());
+                        .content(asJsonString(updatePhoneRq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"))
+                .andExpect(jsonPath("$.phoneNumber").value("1234567890"));
 
-        verify(userService, times(1)).updateUser(eq(userId), any(User.class));
+        verify(userService, times(1)).updatePhone(userId, updatePhoneRq);
     }
-
 
     @Test
     void updateUserFullTest() throws Exception {
-        Long userId = 123L;
-        UserDTO userDetails = new UserDTO();
-        userDetails.setEmail("updatedEmail@gmail.com");
-        userDetails.setFirstName("UpdatedFirstName");
-        userDetails.setLastName("UpdatedLastName");
+        Long userId = 1L;
+        UserDto userDTO = new UserDto();
+        userDTO.setEmail("test@example.com");
+        userDTO.setFirstName("John");
+        userDTO.setLastName("Doe");
 
-        UserDTO updatedUserDTO = new UserDTO();
-        updatedUserDTO.setEmail("updatedEmail@gmail.com");
-        updatedUserDTO.setFirstName("UpdatedFirstName");
-        updatedUserDTO.setLastName("UpdatedLastName");
+        UserDto updatedUser = new UserDto();
+        updatedUser.setEmail("test@example.com");
+        updatedUser.setFirstName("John");
+        updatedUser.setLastName("Doe");
 
-        when(userService.updateUser(eq(userId), any(User.class))).thenReturn(convertToUser(updatedUserDTO));
-        mockMvc.perform(put("/api/V1/users/{userId}", userId)
+        when(userService.updateUserFull(userId, userDTO)).thenReturn(updatedUser);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/V1/users/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"email\": \"updatedEmail@gmail.com\"," +
-                                " \"firstName\": \"UpdatedFirstName\", \"lastName\":" +
-                                " \"UpdatedLastName\"}"))
-                .andExpect(status().isOk());
-        verify(userService, times(1)).updateUser(eq(userId), any(User.class));
-    }
+                        .content(asJsonString(userDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.email").value("test@example.com"))
+                .andExpect(jsonPath("$.firstName").value("John"))
+                .andExpect(jsonPath("$.lastName").value("Doe"));
 
-//    @Test
-//    void searchUsersByBirthDateRangeTest() throws Exception {
-//        LocalDate startDate = LocalDate.of(1990, 1, 1);
-//        LocalDate endDate = LocalDate.of(1995, 12, 31);
-//        List<User> users = new ArrayList<>();
-//        users.add(new User(1L, "email1@gmail.com", "FirstName1", "LastName1", LocalDate.of(1993, 5, 10), "Address1", "1234567890"));
-//        users.add(new User(2L, "email2@gmail.com", "FirstName2", "LastName2", LocalDate.of(1994, 8, 20), "Address2", "0987654321"));
-//        when(userService.getUsersByBirthDateRange(PageRequest.of(0, 10), startDate, endDate)).thenReturn(users);
-//
-//        mockMvc.perform(get("/api/V1/users/searchUser")
-//                        .param("from", startDate.toString())
-//                        .param("to", endDate.toString())
-//                        .contentType(MediaType.APPLICATION_JSON))
-//                .andExpect(status().isOk())
-//                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
-//
-//        verify(userService, times(1)).getUsersByBirthDateRange(PageRequest.of(0, 10), startDate, endDate);
-//    }
+        verify(userService, times(1)).updateUserFull(userId, userDTO);
+    }
 
     @Test
     void searchUsersByBirthDateRangeTest() throws Exception {
         LocalDate startDate = LocalDate.of(1990, 1, 1);
-        LocalDate endDate = LocalDate.of(1995, 12, 31);
-        List<User> users = new ArrayList<>();
-        users.add(new User(1L, "email1@gmail.com", "FirstName1", "LastName1", LocalDate.of(1993, 5, 10), "Address1", "1234567890"));
-        users.add(new User(2L, "email2@gmail.com", "FirstName2", "LastName2", LocalDate.of(1994, 8, 20), "Address2", "0987654321"));
+        LocalDate endDate = LocalDate.of(1995, 1, 1);
+        List<UserDto> users = new ArrayList<>();
+        UserDto user1 = new UserDto();
+        user1.setEmail("user1@example.com");
+        user1.setFirstName("Alice");
+        user1.setLastName("Smith");
+        user1.setBirthDate(LocalDate.of(1992, 3, 15));
+        users.add(user1);
 
-        Page<User> userPage = new PageImpl<>(users);
+        UserDto user2 = new UserDto();
+        user2.setEmail("user2@example.com");
+        user2.setFirstName("Bob");
+        user2.setLastName("Johnson");
+        user2.setBirthDate(LocalDate.of(1990, 8, 22));
+        users.add(user2);
 
-        when(userService.getUsersByBirthDateRange1(any(), eq(startDate), eq(endDate))).thenReturn(userPage);
+        Page<UserDto> userPage = new PageImpl<>(users);
 
-        mockMvc.perform(get("/api/V1/users/searchUser1")
+        when(userService.getUsersByBirthDateRange(any(Pageable.class), eq(startDate), eq(endDate))).thenReturn(userPage);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/V1/users/searchUser")
                         .param("from", startDate.toString())
-                        .param("to", endDate.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2));
+                        .param("to", endDate.toString()))
+                .andExpect(status().isOk());
 
-
-        verify(userService, times(1)).getUsersByBirthDateRange1(any(), eq(startDate), eq(endDate));
+        verify(userService, times(1)).getUsersByBirthDateRange(any(Pageable.class), eq(startDate), eq(endDate));
     }
 
-    @Test
-    void searchUsersByBirthDateRangeBadRequestTest() throws Exception {
-        LocalDate startDate = LocalDate.of(1995, 1, 1);
-        LocalDate endDate = LocalDate.of(1990, 12, 31);
-
-        mockMvc.perform(get("/api/V1/users/searchUser1")
-                        .param("from", startDate.toString())
-                        .param("to", endDate.toString())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest());
+    private static String asJsonString(final Object obj) {
+        try {
+            return new ObjectMapper().writeValueAsString(obj);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-
-    public User convertToUser(UserDTO userDTO){
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(userDTO, User.class);
-    }
-
 }

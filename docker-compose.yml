@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:15.4
+    container_name: postgresStas
+    environment:
+      POSTGRES_DB: "postgres"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
+    ports:
+      - "5532:5432"

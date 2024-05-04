@@ -1,15 +1,12 @@
 package com.RestApi.task.TestRestApi.services;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import com.RestApi.task.TestRestApi.dto.UpdatePhoneNumberRq;
+import com.RestApi.task.TestRestApi.dto.UserDto;
 import com.RestApi.task.TestRestApi.entity.User;
 import com.RestApi.task.TestRestApi.exceptions.UserNotFoundException;
+import com.RestApi.task.TestRestApi.mapper.UserMapper;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
+import com.RestApi.task.TestRestApi.validator.UserDataValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,139 +14,219 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceImplTest {
+class UserServiceImplTest {
+
+    @Mock
+    private UserMapper userMapper;
 
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private UserDataValidator userDataValidator;
+
     @InjectMocks
     private UserServiceImpl userService;
 
-//    @Test
-//    public void testFindByBirthDateBetween() {
-//        List<User> users = createUsers();
-//
-//        LocalDate startDate = LocalDate.of(1990, 1, 1);
-//        LocalDate endDate = LocalDate.of(1990, 2, 28);
-//        when(userRepository.findByBirthDateBetween(PageRequest.of(0, 10), startDate, endDate)).thenReturn(users);
-//
-//        List<User> result = userService.getUsersByBirthDateRange(PageRequest.of(0, 10),  startDate, endDate);
-//
-//        assertEquals(2, result.size());
-//    }
+    @Test
+    void testCreateUser() {
+        UserDto userDto = new UserDto();
+        userDto.setFirstName("John");
+        userDto.setLastName("Doe");
+        userDto.setEmail("john@example.com");
+        LocalDate birthDate = LocalDate.of(1990, 1, 1);
+        userDto.setBirthDate(birthDate);
+
+        User user = new User();
+        user.setId(1L);
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setEmail("john@example.com");
+        user.setBirthDate(birthDate);
+
+        when(userMapper.convertToUser(userDto)).thenReturn(user);
+        when(userRepository.save(user)).thenReturn(user);
+        when(userMapper.convertToDTO(user)).thenReturn(userDto);
+
+        UserDto result = userService.createUser(userDto);
+
+        assertEquals(userDto.getFirstName(), result.getFirstName());
+        assertEquals(userDto.getLastName(), result.getLastName());
+        assertEquals(userDto.getEmail(), result.getEmail());
+        assertEquals(userDto.getBirthDate(), result.getBirthDate());
+    }
+
+
 
     @Test
-    public void testGetUsersByBirthDateRange1() {
-        // Создаем тестовых пользователей
-        List<User> users = createUsers();
+    void testGetAllUsers() {
+        List<User> userList = new ArrayList<>();
+        userList.add(createUser("John", "Doe", "john@example.com"));
+        userList.add(createUser("Jane", "Smith", "jane@example.com"));
 
-        // Устанавливаем даты начала и конца для поиска пользователей
+        Pageable pageable = Pageable.unpaged();
+        Page<User> userPage = new PageImpl<>(userList);
+
+        when(userRepository.findAll(pageable)).thenReturn(userPage);
+
+        List<UserDto> expectedUserDtoList = new ArrayList<>();
+        for (User user : userList) {
+            expectedUserDtoList.add(userMapper.convertToDTO(user));
+        }
+
+        Page<UserDto> result = userService.getAllUsers(pageable);
+
+        assertEquals(expectedUserDtoList.size(), result.getContent().size());
+    }
+
+
+    @Test
+    void testGetUsersByBirthDateRange() {
         LocalDate startDate = LocalDate.of(1990, 1, 1);
-        LocalDate endDate = LocalDate.of(1990, 2, 28);
+        LocalDate endDate = LocalDate.of(1991, 1, 1);
+        Pageable pageable = Pageable.unpaged();
 
-        // Устанавливаем ожидаемый результат при вызове метода findByBirthDateBetween
-        when(userRepository.findByBirthDateBetween(any(Pageable.class), eq(startDate), eq(endDate)))
-                .thenReturn(new PageImpl<>(users));
+        List<User> userList = new ArrayList<>();
+        userList.add(createUser("John", "Doe", "john@example.com",
+                LocalDate.of(1990, 6, 15)));
+        userList.add(createUser("Jane", "Smith", "jane@example.com",
+                LocalDate.of(1990, 7, 20)));
 
-        // Вызываем тестируемый метод
-        Page<User> result = userService.getUsersByBirthDateRange1(PageRequest.of(0, 10), startDate, endDate);
+        Page<User> userPage = new PageImpl<>(userList);
 
-        // Проверяем корректность результатов
-        assertEquals(2, result.getContent().size());
+        when(userRepository.findByBirthDateBetween(pageable, startDate, endDate)).thenReturn(userPage);
+        when(userMapper.convertToDTO(any(User.class))).thenAnswer(invocation -> {
+            User user = invocation.getArgument(0);
+            return new UserDto(user.getFirstName(), user.getLastName(), user.getEmail(), user.getBirthDate(), user.getAddress(), user.getPhoneNumber());
+        });
+
+        List<UserDto> expectedUserDtoList = new ArrayList<>();
+        for (User user : userList) {
+            expectedUserDtoList.add(userMapper.convertToDTO(user));
+        }
+
+        Page<UserDto> result = userService.getUsersByBirthDateRange(pageable, startDate, endDate);
+
+        assertEquals(expectedUserDtoList.size(), result.getContent().size());
+
+        verify(userDataValidator).validateDateRange(startDate, endDate);
     }
 
     @Test
-    public void testCreateUser() {
-        User userToCreate = new User();
-        userToCreate.setId(1L);
-        userToCreate.setEmail("example@example.com");
-        userToCreate.setFirstName("John");
-        userToCreate.setLastName("Doe");
-        userToCreate.setBirthDate(LocalDate.of(1990, 1, 1));
-
-        User savedUser = new User();
-        savedUser.setId(1L);
-        savedUser.setEmail("example@example.com");
-        savedUser.setFirstName("John");
-        savedUser.setLastName("Doe");
-
-        when(userRepository.save(userToCreate)).thenReturn(savedUser);
-
-        User createdUser = userService.createUser(userToCreate);
-
-        assertNotNull(createdUser);
-    }
-
-
-    @Test
-    public void testGetAllUsers() {
-        int page = 0;
-        int size = 10;
-        List<User> users = createUsers();
-        Page<User> pageUsers = new PageImpl<>(users);
-
-        when(userRepository.findAll(PageRequest.of(page, size))).thenReturn(pageUsers);
-
-        List<User> allUsers = userService.getAllUsers(PageRequest.of(page, size));
-        assertEquals(2, allUsers.size());
-
-        assertEquals(1L, allUsers.get(0).getId());
-        assertEquals("example1@example.com", allUsers.get(0).getEmail());
-        assertEquals("John", allUsers.get(0).getFirstName());
-        assertEquals("Doe", allUsers.get(0).getLastName());
-
-        assertEquals(2L, allUsers.get(1).getId());
-        assertEquals("example1@example.com", allUsers.get(1).getEmail());
-        assertEquals("Jane", allUsers.get(1).getFirstName());
-        assertEquals("Doe", allUsers.get(1).getLastName());
-    }
-
-    @Test
-    public void testDeleteUser_Success() {
+    void testDeleteUser() {
         Long userId = 1L;
-        User existingUser = new User();
-        existingUser.setId(userId);
-        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        User user = new User();
+        user.setId(userId);
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+
         userService.deleteUser(userId);
-        verify(userRepository, times(1)).delete(existingUser);
+
+        verify(userRepository).delete(user);
     }
 
     @Test
-    public void testDeleteUser_UserNotFound() {
+    void testDeleteUser_UserNotFound() {
         Long userId = 1L;
+
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
         assertThrows(UserNotFoundException.class, () -> userService.deleteUser(userId));
     }
 
+    @Test
+    void testUpdateUserFull() {
+        Long userId = 1L;
+        UserDto userDetails = new UserDto();
+        userDetails.setEmail("new.email@example.com");
+        userDetails.setBirthDate(LocalDate.of(1990, 10, 26));
+        userDetails.setAddress("456 New St");
+        userDetails.setPhoneNumber("987654321");
+        userDetails.setFirstName("NewFirstName");
+        userDetails.setLastName("NewLastName");
 
-    private List<User> createUsers() {
-        List<User> users = new ArrayList<>();
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setEmail("old.email@example.com");
 
-        User user1 = new User();
-        user1.setId(1L);
-        user1.setEmail("example1@example.com");
-        user1.setFirstName("John");
-        user1.setLastName("Doe");
-        user1.setBirthDate(LocalDate.of(1990, 1, 1));
-        user1.setAddress("123 Main St");
-        user1.setPhoneNumber("1234567890");
-        users.add(user1);
+        User updatedUser = new User();
+        updatedUser.setId(userId);
+        updatedUser.setEmail(userDetails.getEmail());
+        updatedUser.setBirthDate(userDetails.getBirthDate());
+        updatedUser.setAddress(userDetails.getAddress());
+        updatedUser.setPhoneNumber(userDetails.getPhoneNumber());
+        updatedUser.setFirstName(userDetails.getFirstName());
+        updatedUser.setLastName(userDetails.getLastName());
 
-        User user2 = new User();
-        user2.setId(2L);
-        user2.setEmail("example1@example.com");
-        user2.setFirstName("Jane");
-        user2.setLastName("Doe");
-        user2.setBirthDate(LocalDate.of(1990, 1, 1));
-        user2.setAddress("123 Main St");
-        user2.setPhoneNumber("1234567890");
-        users.add(user2);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(updatedUser)).thenReturn(updatedUser);
+        when(userMapper.convertToDTO(updatedUser)).thenReturn(userDetails);
 
-        return users;
+        UserDto result = userService.updateUserFull(userId, userDetails);
+
+        assertEquals(userDetails, result);
+        verify(userRepository).findById(userId);
+        verify(userRepository).save(updatedUser);
+        verify(userMapper).convertToDTO(updatedUser);
+    }
+
+    @Test
+    void testUpdatePhone() {
+        Long userId = 1L;
+        String newPhoneNumber = "987654321";
+        LocalDate date = LocalDate.of(1990, 1, 1);
+
+        UpdatePhoneNumberRq userDetails = new UpdatePhoneNumberRq();
+        userDetails.setPhoneNumber(newPhoneNumber);
+
+        User existingUser = new User();
+        existingUser.setId(userId);
+        existingUser.setFirstName("TestFirstName");
+        existingUser.setLastName("TestFirstName");
+        existingUser.setBirthDate(date);
+        existingUser.setEmail("TestFirstName@gmaik.com");
+        existingUser.setPhoneNumber("123456789");
+
+        when(userRepository.findById(userId)).thenReturn(Optional.of(existingUser));
+
+        when(userRepository.save(existingUser)).thenReturn(existingUser);
+
+        userService.updatePhone(userId, userDetails);
+
+        verify(userRepository).save(existingUser); // Verify that the save method was called
+    }
+
+
+    private User createUser(String firstName, String lastName, String email) {
+        User user = new User();
+        user.setId(1L);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        return user;
+    }
+
+    private User createUser(String firstName, String lastName, String email, LocalDate birthDate) {
+        User user = new User();
+        user.setId(1L);
+        user.setFirstName(firstName);
+        user.setLastName(lastName);
+        user.setEmail(email);
+        user.setBirthDate(birthDate);
+        return user;
     }
 }

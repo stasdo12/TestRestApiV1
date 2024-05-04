@@ -1,113 +1,101 @@
 package com.RestApi.task.TestRestApi.services;
 
+
+import com.RestApi.task.TestRestApi.dto.UpdatePhoneNumberRq;
+import com.RestApi.task.TestRestApi.dto.UserDto;
 import com.RestApi.task.TestRestApi.entity.User;
-import com.RestApi.task.TestRestApi.exceptions.AgeRequirementException;
 import com.RestApi.task.TestRestApi.exceptions.UserNotFoundException;
+import com.RestApi.task.TestRestApi.mapper.UserMapper;
 import com.RestApi.task.TestRestApi.repositories.UserRepository;
+import com.RestApi.task.TestRestApi.validator.UserDataValidator;
+import java.time.LocalDate;
+import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDate;
-import java.util.List;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    @Value("${user.min-age}")
-    private int minAge;
+  @Value("${user.min-age}")
+  private int minAge;
 
-    private final UserRepository userRepository;
+  private final UserMapper userMapper;
+  private final UserRepository userRepository;
+  private final UserDataValidator userDataValidator;
 
-    @Transactional
-    @Override
-    public User createUser(User user) {
-        LocalDate currentDate = LocalDate.now();
-        LocalDate minBirthDate = currentDate.minusYears(minAge);
+  @Transactional
+  @Override
+  public UserDto createUser(@Valid UserDto userDto) {
+    log.info("Creating user: {}", userDto);
+    User user = userMapper.convertToUser(userDto);
+    userDataValidator.validateUserAge(user.getBirthDate(), minAge);
+    return userMapper.convertToDTO(userRepository.save(user));
+  }
 
-        if (user.getBirthDate().isAfter(minBirthDate)) {
-            throw new AgeRequirementException("User must be 18 years old or older.");
-        }
-        return userRepository.save(user);
-    }
+  @Transactional
+  @Override
+  public UserDto updatePhone(Long userId, @Valid UpdatePhoneNumberRq userDetails) {
+    log.info("Updating phone number for user with id: {}", userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
 
-    @Transactional
-    @Override
-    public User updateUser(Long userId, User userDetails) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+    user.setPhoneNumber(userDetails.getPhoneNumber());
 
-        if (userDetails.getEmail() != null) {
-            user.setEmail(userDetails.getEmail());
-        }
-        if (userDetails.getBirthDate() != null) {
-            user.setBirthDate(userDetails.getBirthDate());
-        }
-        if (userDetails.getAddress() != null) {
-            user.setAddress(userDetails.getAddress());
-        }
-        if (userDetails.getPhoneNumber() != null) {
-            user.setPhoneNumber(userDetails.getPhoneNumber());
-        }
-        if (userDetails.getFirstName() != null){
-            user.setFirstName(userDetails.getFirstName());
-        }
-        if (userDetails.getLastName() != null){
-            user.setLastName(userDetails.getLastName());
-        }
-        return userRepository.save(user);
-    }
+    User savedUser = userRepository.save(user);
+    return userMapper.convertToDTO(savedUser);
+  }
 
-    @Transactional
-    @Override
-    public User updateUserFull(Long userId, User userDetails) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException(userId));
+  @Transactional
+  @Override
+  public UserDto updateUserFull(Long userId, UserDto userDetails) {
+    log.info("Updating user with id: {}", userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
 
-        user.setEmail(userDetails.getEmail());
-        user.setBirthDate(userDetails.getBirthDate());
-        user.setAddress(userDetails.getAddress());
-        user.setPhoneNumber(userDetails.getPhoneNumber());
-        user.setFirstName(userDetails.getFirstName());
-        user.setLastName(userDetails.getLastName());
+    user.setEmail(userDetails.getEmail());
+    user.setBirthDate(userDetails.getBirthDate());
+    user.setAddress(userDetails.getAddress());
+    user.setPhoneNumber(userDetails.getPhoneNumber());
+    user.setFirstName(userDetails.getFirstName());
+    user.setLastName(userDetails.getLastName());
 
-        return userRepository.save(user);
-    }
+    User save = userRepository.save(user);
+    return userMapper.convertToDTO(save);
+  }
 
-    @Transactional
-    @Override
-    public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow (() -> new UserNotFoundException(userId));
+  @Transactional
+  @Override
+  public void deleteUser(Long userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(userId));
+    log.info("Deleting user with id: {}", userId);
+    userRepository.delete(user);
+  }
 
-        userRepository.delete(user);
-    }
+  @Override
+  public Page<UserDto> getAllUsers(Pageable pageable) {
+    log.info("Getting all users");
+    Page<User> all = userRepository.findAll(pageable);
+    return all.map(userMapper::convertToDTO);
+  }
 
-    @Override
-    public List<User> getAllUsers(PageRequest pageRequest) {
-        Page<User> page = userRepository.findAll(pageRequest);
-        return page.getContent();
-    }
-
-//    @Override
-//    public List<User> getUsersByBirthDateRange(PageRequest pageRequest,  LocalDate startDate, LocalDate endDate) {
-//        return userRepository.findByBirthDateBetween(pageRequest, startDate, endDate);
-//    }
-
-    @Override
-    public Page<User> getAllUsers1(Pageable pageable) {
-        return userRepository.findAll(pageable);
-    }
-
-    @Override
-    public Page<User> getUsersByBirthDateRange1(Pageable pageable, LocalDate startDate, LocalDate endDate) {
-        return userRepository.findByBirthDateBetween(pageable, startDate, endDate);
-    }
+  @Override
+  public Page<UserDto> getUsersByBirthDateRange(Pageable pageable, LocalDate startDate,
+                                                LocalDate endDate) {
+    log.info("Getting users by birth date range");
+    userDataValidator.validateDateRange(startDate, endDate);
+    Page<User> byBirthDateBetween = userRepository.findByBirthDateBetween(pageable, startDate,
+        endDate);
+    return byBirthDateBetween.map(userMapper::convertToDTO);
+  }
 
 
 }

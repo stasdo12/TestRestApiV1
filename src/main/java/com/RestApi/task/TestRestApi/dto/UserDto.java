@@ -2,17 +2,25 @@ package com.RestApi.task.TestRestApi.dto;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 
 @Component
 @Data
-public class UserDTO {
+@AllArgsConstructor
+@NoArgsConstructor
+@Setter
+@Getter
+public class UserDto {
 
     @Email(message = "Email must be valid")
     private String email;
@@ -25,11 +33,12 @@ public class UserDTO {
     @Size(max = 50, message = "Last name must not exceed 50 characters")
     private String lastName;
 
+    @NotNull(message = "BirthDate must not be empty")
     private LocalDate birthDate;
 
-    @NotBlank(message = "Address must not be empty")
+
     private String address;
 
-    @Pattern(regexp = "\\d{10}", message = "Phone number must contain 10 digits")
+
     private String phoneNumber;
 }

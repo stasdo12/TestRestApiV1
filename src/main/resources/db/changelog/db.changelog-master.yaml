@@ -22,17 +22,17 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: firstName
+                  name: first_name
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
-                  name: lastName
+                  name: last_name
                   type: VARCHAR(255)
                   constraints:
                     nullable: false
               - column:
-                  name: birthDate
+                  name: birth_date
                   type: DATE
                   constraints:
                     nullable: false
@@ -40,5 +40,5 @@ databaseChangeLog:
                   name: address
                   type: VARCHAR(255)
               - column:
-                  name: phoneNumber
+                  name: phone_number
                   type: VARCHAR(20)

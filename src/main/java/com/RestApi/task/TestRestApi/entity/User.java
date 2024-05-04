@@ -42,19 +42,19 @@ public class User implements Serializable {
     @NotBlank(message = "First name is required")
     @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     @Valid
-    @Column(name = "firstname")
+    @Column(name = "first_name")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
     @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
     @Valid
-    @Column(name = "lastname")
+    @Column(name = "last_name")
     private String lastName;
 
     @NotNull(message = "Birth date is required")
     @Past(message = "Birth date must be in the past")
     @Valid
-    @Column(name = "birthdate")
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Valid
@@ -62,6 +62,6 @@ public class User implements Serializable {
     private String address;
 
     @Valid
-    @Column(name = "phonenumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
 }

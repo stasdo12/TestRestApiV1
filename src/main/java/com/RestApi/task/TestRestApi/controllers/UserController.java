@@ -1,76 +1,75 @@
 package com.RestApi.task.TestRestApi.controllers;
 
-
-import com.RestApi.task.TestRestApi.entity.User;
+import com.RestApi.task.TestRestApi.dto.UpdatePhoneNumberRq;
+import com.RestApi.task.TestRestApi.dto.UserDto;
 import com.RestApi.task.TestRestApi.services.UserService;
-import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import java.time.LocalDate;
+import javax.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.format.annotation.DateTimeFormat;
-
-import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("api/V1/users")
+@RequiredArgsConstructor
 public class UserController {
 
-    @Value("${user.min-age}")
-    private int minAge;
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
-
-    @GetMapping("/getAllUsers")
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    @PostMapping
+    public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserDto userDTO) {
+        UserDto response = userService.createUser(userDTO);
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    @PostMapping("/createUser")
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        LocalDate currentDate = LocalDate.now();
-        LocalDate minBirthDate = currentDate.minusYears(minAge);
-        if (user.getBirthDate().isAfter(minBirthDate)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-        User createdUser = userService.createUser(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    @GetMapping
+    public ResponseEntity<Page<UserDto>> getAllUsers(Pageable pageable) {
+        Page<UserDto> userPage = userService.getAllUsers(pageable);
+        return new ResponseEntity<>(userPage, HttpStatus.OK);
     }
 
-    @DeleteMapping("/deleteUser/{userId}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long userId) {
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 
-    @Transactional
-    @PatchMapping("/updateUser/{userId}")
-    public ResponseEntity<User> updateUser(@PathVariable Long userId, @Valid @RequestBody User userDetails) {
-        User updateUser = userService.updateUser(userId, userDetails);
-        return ResponseEntity.ok(updateUser);
+    @PatchMapping("/{userId}")
+    public ResponseEntity<UserDto> updateContacts(@PathVariable Long userId,
+                                                  @Valid @RequestBody UpdatePhoneNumberRq updatePhoneRq) {
+        UserDto updatedUser = userService.updatePhone(userId, updatePhoneRq);
+        return ResponseEntity.ok(updatedUser);
     }
 
-    @Transactional
-    @PutMapping("/updateUserFull/{userId}")
-    public ResponseEntity<User> updateUserFull(@PathVariable Long userId, @Valid @RequestBody User userDetails) {
-        User updatedUser = userService.updateUser(userId, userDetails);
+    @PutMapping("/{userId}")
+    public ResponseEntity<UserDto> updateUserFull(@PathVariable Long userId,
+                                                  @Valid @RequestBody UserDto userDTO) {
+        UserDto updatedUser = userService.updateUserFull(userId, userDTO);
         return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/searchUser")
-    public ResponseEntity<List<User>> searchUsersByBirthDateRange
-            (@RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-        if (startDate.isAfter(endDate)) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
-        }
-        List<User> users = userService.getUsersByBirthDateRange(startDate, endDate);
-        return ResponseEntity.ok(users);
-
+    public ResponseEntity<Page<UserDto>> searchUsersByBirthDateRange1(
+            @RequestParam("from") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("to") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            Pageable pageable) {
+        Page<UserDto> userPage = userService.getUsersByBirthDateRange(pageable, startDate, endDate);
+        return ResponseEntity.ok(userPage);
     }
+
 }

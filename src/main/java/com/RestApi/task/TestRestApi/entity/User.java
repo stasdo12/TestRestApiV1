@@ -1,20 +1,21 @@
 package com.RestApi.task.TestRestApi.entity;
 
-
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Past;
 import javax.validation.constraints.Size;
-
 import java.io.Serializable;
 import java.time.LocalDate;
 
@@ -23,8 +24,6 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Getter
-@Setter
 @Table(name = "users")
 @Valid
 public class User implements Serializable {
@@ -43,18 +42,19 @@ public class User implements Serializable {
     @NotBlank(message = "First name is required")
     @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
     @Valid
-    @Column(name = "firstname")
+    @Column(name = "first_name")
     private String firstName;
 
     @NotBlank(message = "Last name is required")
     @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
     @Valid
-    @Column(name = "lastname")
+    @Column(name = "last_name")
     private String lastName;
 
+    @NotNull(message = "Birth date is required")
     @Past(message = "Birth date must be in the past")
     @Valid
-    @Column(name = "birthdate")
+    @Column(name = "birth_date")
     private LocalDate birthDate;
 
     @Valid
@@ -62,8 +62,6 @@ public class User implements Serializable {
     private String address;
 
     @Valid
-    @Column(name = "phonenumber")
+    @Column(name = "phone_number")
     private String phoneNumber;
-
-
 }

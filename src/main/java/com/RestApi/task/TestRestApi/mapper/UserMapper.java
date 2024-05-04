@@ -10,14 +10,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserMapper {
 
-  private final ModelMapper modelMapper;
+    private final ModelMapper modelMapper;
 
-  public User convertToUser(UserDto userDTO){
-    return modelMapper.map(userDTO, User.class);
-  }
+    public User convertToUser(UserDto userDTO) {
+        return modelMapper.map(userDTO, User.class);
+    }
 
-  public UserDto convertToDTO(User user){
-    return modelMapper.map(user, UserDto.class);
-  }
+    public UserDto convertToDTO(User user) {
+        return modelMapper.map(user, UserDto.class);
+    }
 
 }

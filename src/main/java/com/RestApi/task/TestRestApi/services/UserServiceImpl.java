@@ -1,6 +1,5 @@
 package com.RestApi.task.TestRestApi.services;
 
-
 import com.RestApi.task.TestRestApi.dto.UpdatePhoneNumberRq;
 import com.RestApi.task.TestRestApi.dto.UserDto;
 import com.RestApi.task.TestRestApi.entity.User;
@@ -98,6 +97,4 @@ public class UserServiceImpl implements UserService {
                 endDate);
         return byBirthDateBetween.map(userMapper::convertToDTO);
     }
-
-
 }

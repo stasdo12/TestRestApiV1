@@ -73,5 +73,4 @@ public class UserController {
         Page<UserDto> userPage = userService.getUsersByBirthDateRange(pageable, startDate, endDate);
         return ResponseEntity.ok(userPage);
     }
-
 }

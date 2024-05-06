@@ -206,7 +206,7 @@ class UserServiceImplTest {
 
         userService.updatePhone(userId, userDetails);
 
-        verify(userRepository).save(existingUser); // Verify that the save method was called
+        verify(userRepository).save(existingUser);
     }
 
 

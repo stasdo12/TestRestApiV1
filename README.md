@@ -1,11 +1,11 @@
 ## API Endpoints
 
-- **POST** `/api/V1/users`: Create a new user.
-- **GET** `/api/V1/users`: Retrieve all users.
-- **DELETE** `/api/V1/users/{userId}`: Delete a user by ID.
-- **PATCH** `/api/V1/users/{userId}`: Update user's phone number.
-- **PUT** `/api/V1/users/{userId}`: Update user's information.
-- **GET** `/api/V1/users/searchUser`: Search users by birth date range.
+- **POST** `/api/v1/users`: Create a new user.
+- **GET** `/api/v1/users`: Retrieve all users.
+- **DELETE** `/api/v1/users/{userId}`: Delete a user by ID.
+- **PATCH** `/api/v1/users/{userId}`: Update user's phone number.
+- **PUT** `/api/v1/users/{userId}`: Update user's information.
+- **GET** `/api/v1/users/search/`: Search users by birth date range.
 
 # TestRestApi
 

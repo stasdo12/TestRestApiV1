@@ -1,18 +1,17 @@
 package com.RestApi.task.TestRestApi.config;
 
-import org.springdoc.core.GroupedOpenApi;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Info;
 
-@Configuration
-public class OpenApiConfig {
 
-    @Bean
-    public GroupedOpenApi publicApi() {
-        return GroupedOpenApi.builder()
-                .group("public")
-                .pathsToMatch("/api/v1/**")
-                .build();
-    }
+
+@OpenAPIDefinition(
+        info = @Info(
+                title = "User API",
+                description = "Doing CRUD operation REST API",
+                summary = "This API users will add, delete, create and update users"
+        )
+)
+public class OpenApiConfig  {
 
 }

@@ -46,7 +46,7 @@ public class UserControllerTest {
 
         when(userService.createUser(any(UserDto.class))).thenReturn(userDto);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/V1/users")
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(userDto)))
                 .andExpect(status().isCreated())
@@ -104,7 +104,7 @@ public class UserControllerTest {
 
         when(userService.updatePhone(userId, updatePhoneRq)).thenReturn(updatedUser);
 
-        mockMvc.perform(MockMvcRequestBuilders.patch("/api/V1/users/{userId}", userId)
+        mockMvc.perform(MockMvcRequestBuilders.patch("/api/v1/users/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(updatePhoneRq)))
                 .andExpect(status().isOk())
@@ -131,7 +131,7 @@ public class UserControllerTest {
 
         when(userService.updateUserFull(userId, userDTO)).thenReturn(updatedUser);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/V1/users/{userId}", userId)
+        mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/users/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(userDTO)))
                 .andExpect(status().isOk())
@@ -165,7 +165,7 @@ public class UserControllerTest {
 
         when(userService.getUsersByBirthDateRange(any(Pageable.class), eq(startDate), eq(endDate))).thenReturn(userPage);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/V1/users/searchUser")
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/v1/users/search")
                         .param("from", startDate.toString())
                         .param("to", endDate.toString()))
                 .andExpect(status().isOk());

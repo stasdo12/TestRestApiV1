@@ -1,7 +1,5 @@
 package com.RestApi.task.TestRestApi.config;
 
-import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.info.Info;
 import org.springdoc.core.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,12 +15,4 @@ public class OpenApiConfig {
                 .build();
     }
 
-    @Bean
-    public OpenAPI customOpenAPI() {
-        return new OpenAPI()
-                .info(new Info()
-                        .title("Test Rest API")
-                        .version("1.0")
-                        .description("Test Rest API"));
-    }
 }

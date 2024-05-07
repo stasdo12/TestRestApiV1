@@ -1,5 +1,5 @@
 ## API Endpoints
-
+Swagger UI [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
 - **POST** `/api/v1/users`: Create a new user.
 - **GET** `/api/v1/users`: Retrieve all users.
 - **DELETE** `/api/v1/users/{userId}`: Delete a user by ID.
